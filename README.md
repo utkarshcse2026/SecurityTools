@@ -43,9 +43,11 @@ Here is how to use each tool in the suite.
 
 This script discovers open ports on a single target.
 
-```sh
-python port_scanner.py <target_host>
-
 <img width="782" height="197" alt="image" src="https://github.com/user-attachments/assets/1fbb8aea-e97d-4eb0-b264-0e45f99eadd8" />
 
 <img width="833" height="193" alt="image" src="https://github.com/user-attachments/assets/1f19545b-22fa-4610-a6dc-53018c0d6444" />
+
+
+```sh
+python port_scanner.py <target_host>
+
