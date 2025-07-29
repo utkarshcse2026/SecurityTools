@@ -7,7 +7,8 @@ from bs4 import BeautifulSoup
 import time
 import random
 import string
-import threading # Add this line
+import threading
+import socket  # Added missing import
 
 # --- Shared State & Configuration ---
 start_time = 0
@@ -50,14 +51,14 @@ async def probe_subdomain(sub, domain, resolver, session, results_widget):
     except (aiodns.error.DNSError, asyncio.TimeoutError):
         pass # Subdomain does not exist or timed out
     finally:
-        completed_tasks += 1
+        with print_lock:
+            completed_tasks += 1
 
 async def run_scan(domain, wordlist, results_widget, progress_bar, status_label, scan_button):
     """Main async function to orchestrate the entire scan."""
     global found_subdomains
     log_message(results_widget, f"--- [INTENSE SCAN INITIATED] TARGET: {domain} ---")
     
-    # --- NEW: Real-time status logging ---
     log_message(results_widget, "[INFO] Performing wildcard DNS check...")
     if detect_wildcard(domain, results_widget):
         log_message(results_widget, "[CRITICAL] Wildcard DNS detected. Aborting scan to prevent false positives.")
@@ -89,6 +90,7 @@ async def run_scan(domain, wordlist, results_widget, progress_bar, status_label,
 
 
 # --- Synchronous & GUI Functions ---
+print_lock = threading.Lock()
 
 def detect_wildcard(domain, results_widget):
     """Synchronous wildcard detection."""
@@ -115,9 +117,8 @@ def start_scan_thread(domain_entry, results_widget, scan_button, progress_bar, s
     completed_tasks, start_time, found_subdomains = 0, time.time(), set()
 
     try:
-        # --- NEW: Real-time status logging ---
         log_message(results_widget, "[INFO] Reading wordlist into memory...")
-        with open(wordlist_path, 'r') as f:
+        with open(wordlist_path, 'r', errors='ignore') as f:
             wordlist = [line.strip() for line in f if line.strip()]
         total_tasks = len(wordlist)
         log_message(results_widget, f"[OK] Wordlist loaded with {total_tasks} entries.")
@@ -155,6 +156,7 @@ def log_message(widget, message):
     elif "[WARNING]" in message: tag = 'warning'
     elif "[OK]" in message: tag = 'ok'
     elif "Found:" in message: tag = 'found'
+    elif "[WEB]" in message: tag = 'web'
     elif "---" in message: tag = 'header'
     elif "╔" in message or "║" in message or "╚" in message: tag = 'art'
     widget.insert(tk.END, message + '\n', tag)
@@ -170,7 +172,7 @@ def browse_file(path_var):
 
 if __name__ == '__main__':
     root = tk.Tk()
-    root.title(" Subdomain Finder")
+    root.title("Intense Subdomain Scanner v3.2")
     root.geometry("850x650"); root.configure(bg='black')
 
     main_frame = tk.Frame(root, bg='black', padx=10, pady=10)
@@ -206,6 +208,7 @@ if __name__ == '__main__':
     results_text.tag_config('found', foreground='lime', font=('Courier New', 10, 'bold'))
     results_text.tag_config('header', foreground='cyan', font=('Courier New', 10, 'bold'))
     results_text.tag_config('art', foreground='cyan')
-    results_text.tag_config('normal', foreground='#cccccc') # Lighter grey for normal info
+    results_text.tag_config('web', foreground='#cccccc')
+    results_text.tag_config('normal', foreground='#cccccc') 
 
     root.mainloop()
