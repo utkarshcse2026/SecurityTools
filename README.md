@@ -1,53 +1,53 @@
-# Cybersecurity Tool Suite 🛡️
+# Cyber Arsenal: GUI Security Suite 🛡️
 
-A collection of lightweight, command-line security tools written in Python. This suite provides essential utilities for network reconnaissance and defensive security tasks, perfect for security professionals, developers, and hobbyists.
+An open-source collection of advanced, GUI-based security tools written in Python. This suite features a 'hacker terminal' aesthetic and provides powerful, multi-threaded, and asynchronous utilities for network reconnaissance and web vulnerability analysis.
+
+---
+## Core Tools
+
+<p align="center">
+  <img src="https://i.imgur.com/gKjG1oP.png" alt="Deep Port Scanner GUI" width="400" />
+  <img src="https://i.imgur.com/9b9Jc1N.png" alt="Intense Subdomain Finder GUI" width="400" />
+</p>
+<p align="center">
+  <img src="https://i.imgur.com/K1L5i23.png" alt="Web Vulnerability Scanner GUI" width="400" />
+</p>
 
 ---
 
 ## Features
 
--   **Network Port Scanner:** A fast, multi-threaded scanner to quickly discover open ports on a target host.
--   **Subdomain Finder:** A versatile script to enumerate subdomains for one or more target domains using a custom wordlist.
--   **File Integrity Checker:** A defensive tool to monitor directories for unauthorized file modifications, additions, or deletions using SHA-256 hashes.
+-   **Deep Port Scanner:** A high-speed, multi-threaded port scanner with a full GUI. It scans over 1,800 common ports and performs **banner grabbing** to identify running services and versions. Includes a real-time progress bar and ETR display.
+
+-   **Intense Subdomain Finder:** An asynchronous (`asyncio`) subdomain scanner for dramatically fast enumeration. Features **wildcard detection** to prevent false positives and performs **HTTP/S probing** on found subdomains to identify live web servers and their page titles.
+
+-   **Web Vulnerability Scanner:** A GUI tool that scans web applications for common vulnerabilities, including **Reflected XSS**, basic **SQL Injection**, and missing **Security Headers**.
 
 ---
 
-## Getting Started
+## Installation
 
-These tools are designed to be run directly from the command line.
+These tools are designed to be run from a local Python environment.
 
-### Prerequisites
-
--   Python 3.x
--   The `requests` library is required **only** for the Subdomain Finder.
-
-### Installation
-
-1.  Clone the repository:
+1.  **Clone the repository:**
     ```sh
-    git clone [https://github.com/utkarshcse2026/Cybersecurity-Tool-Suite.git](https://github.com/utkarshcse2026/Cybersecurity-Tool-Suite.git)
-    cd Cybersecurity-Tool-Suite
+    git clone [https://github.com/utkarshcse2026/Cyber-Arsenal-Suite.git](https://github.com/utkarshcse2026/Cyber-Arsenal-Suite.git)
+    cd Cyber-Arsenal-Suite
     ```
-2.  Install the required package for the Subdomain Finder:
+
+2.  **Install all required libraries:**
     ```sh
-    pip install requests
+    pip install requests beautifulsoup4 pynput scapy aiodns aiohttp
     ```
 
 ---
 
 ## Usage
 
-Here is how to use each tool in the suite.
+Each tool is a standalone GUI application.
 
-### 1. Port Scanner
+### 1. Deep Port Scanner
 
-This script discovers open ports on a single target.
-
-<img width="782" height="197" alt="image" src="https://github.com/user-attachments/assets/1fbb8aea-e97d-4eb0-b264-0e45f99eadd8" />
-
-<img width="833" height="193" alt="image" src="https://github.com/user-attachments/assets/1f19545b-22fa-4610-a6dc-53018c0d6444" />
-
-
+Launches a GUI to scan a target for open ports and services.
 ```sh
-python port_scanner.py <target_host>
-
+python deep_scanner.py

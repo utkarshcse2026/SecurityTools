@@ -1,7 +1,0 @@
-www
-api
-blog
-dev
-test
-mail
-shop
