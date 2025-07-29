@@ -21,15 +21,29 @@ completed_ports = 0
 print_lock = threading.Lock()
 start_time = 0
 
-def scan_port(port, target_host, results_widget):
-    """Scans a single port and logs the result."""
+def probe_port(port, target_host, results_widget):
+    """Scans a single port and attempts to grab a service banner."""
     global completed_ports
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(1)
         result = sock.connect_ex((target_host, port))
         if result == 0:
-            log_message(results_widget, f"  [+] Port {port:<5} Open")
+            # --- NEW: BANNER GRABBING LOGIC ---
+            banner = ""
+            try:
+                # Send a generic probe or just listen
+                sock.send(b'WhoAreYou\r\n')
+                banner = sock.recv(1024).decode(errors='ignore').strip()
+            except socket.error:
+                # If recv fails, try a non-blocking recv
+                try:
+                    banner = sock.recv(1024).decode(errors='ignore').strip()
+                except socket.error:
+                    banner = "Service detected, but no banner."
+
+            log_message(results_widget, f"  [+] Port {port:<5} Open   |   Service: {banner if banner else 'Unknown'}")
+            # --- END OF NEW LOGIC ---
         sock.close()
     except socket.error:
         pass # Silently ignore connection errors
@@ -41,7 +55,7 @@ def worker_thread(target_host, results_widget):
     """Pulls a port from the queue and scans it."""
     while not port_queue.empty():
         port = port_queue.get()
-        scan_port(port, target_host, results_widget)
+        probe_port(port, target_host, results_widget)
         port_queue.task_done()
 
 # --- GUI Functions ---
@@ -54,35 +68,32 @@ def start_scan_thread(url_entry, results_widget, scan_button, progress_bar, stat
         log_message(results_widget, "[ERROR] Please enter a target host or IP.")
         return
     
-    # Reset state for a new scan
     results_widget.config(state=tk.NORMAL)
     results_widget.delete('1.0', tk.END)
     scan_button.config(state=tk.DISABLED, text="Scanning...")
     completed_ports = 0
     start_time = time.time()
     
-    # Clear and fill the queue
     while not port_queue.empty():
         port_queue.get()
     for port in PORTS_TO_SCAN:
         port_queue.put(port)
 
     def run_scan():
-        log_message(results_widget, f"--- [SCAN INITIATED] TARGET: {target} ---")
+        log_message(results_widget, f"--- [DEEP SCAN INITIATED] TARGET: {target} ---")
         
         threads = []
-        for _ in range(200): # Increased threads for speed
+        # --- INCREASED THREADS FOR MORE INTENSE SCAN ---
+        for _ in range(500): 
             thread = threading.Thread(target=worker_thread, args=(target, results_widget), daemon=True)
             threads.append(thread)
             thread.start()
         
-        # Start the status update loop
         update_status(results_widget, progress_bar, status_label)
 
         for thread in threads:
-            thread.join() # Wait for all worker threads to finish
+            thread.join()
 
-        # Final attribution
         log_message(results_widget, "\n--- [SCAN COMPLETE] ---")
         log_message(results_widget, "╔════════════════════════════════════════════════════╗")
         log_message(results_widget, "║   Scanner Operation by: Utkarsh Aggarwal         ║")
@@ -96,11 +107,9 @@ def start_scan_thread(url_entry, results_widget, scan_button, progress_bar, stat
 def update_status(results_widget, progress_bar, status_label):
     """Periodically updates the progress bar and ETR label."""
     if completed_ports < TOTAL_PORTS:
-        # Update progress bar
         progress = (completed_ports / TOTAL_PORTS) * 100
         progress_bar['value'] = progress
 
-        # Calculate ETR
         elapsed_time = time.time() - start_time
         if completed_ports > 0 and elapsed_time > 0:
             ports_per_second = completed_ports / elapsed_time
@@ -112,13 +121,10 @@ def update_status(results_widget, progress_bar, status_label):
             status_text = "Progress: 0% | ETR: Calculating..."
         
         status_label.config(text=status_text)
-        
-        # Schedule the next update
         results_widget.after(500, lambda: update_status(results_widget, progress_bar, status_label))
     else:
         progress_bar['value'] = 100
         status_label.config(text="Progress: 100% | ETR: 00m 00s")
-
 
 def log_message(widget, message):
     """Thread-safe way to insert styled messages."""
@@ -131,8 +137,8 @@ def log_message(widget, message):
 
 if __name__ == '__main__':
     root = tk.Tk()
-    root.title("Port Scanner v2.0")
-    root.geometry("650x500")
+    root.title("Deep Port Scanner v3.0")
+    root.geometry("750x550")
     root.configure(bg='black')
 
     main_frame = tk.Frame(root, bg='black', padx=10, pady=10)
@@ -165,7 +171,6 @@ if __name__ == '__main__':
     status_label = tk.Label(status_frame, text="Progress: 0% | ETR: --m --s", font=('Courier New', 9), bg='black', fg='cyan')
     status_label.pack(side=tk.LEFT, padx=5)
     
-    # Configure command for the button after all widgets are created
     scan_button.config(command=lambda: start_scan_thread(url_entry, results_text, scan_button, progress_bar, status_label))
     url_entry.bind("<Return>", lambda event: start_scan_thread(url_entry, results_text, scan_button, progress_bar, status_label))
 
